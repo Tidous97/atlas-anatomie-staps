@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atlas — Anatomie STAPS</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">Atlas</span>
+          <span class="brand-sub">Anatomie STAPS</span>
+        </div>
+
+        <nav class="nav">
+          <div class="nav-group-label">Aperçu</div>
+          <button class="nav-item" data-view="dashboard">
+            <span class="nav-icon">◆</span>Tableau de bord
+          </button>
+          <button class="nav-item" data-view="stats">
+            <span class="nav-icon">✦</span>Statistiques
+          </button>
+            <button class="nav-item" data-view="courses">
+              <span class="nav-icon">▧</span>Cours PDF
+            </button>
+
+          <div class="nav-group-label" id="trainGroupLabel">S’entraîner — CM1</div>
+          <button class="nav-item" data-view="flashcards">
+            <span class="nav-icon">▤</span>Flashcards
+          </button>
+          <button class="nav-item" data-view="quiz">
+            <span class="nav-icon">?</span>QCM
+          </button>
+          <button class="nav-item" data-view="association">
+            <span class="nav-icon">⇄</span>Association
+          </button>
+          <button class="nav-item" data-view="labeling">
+            <span class="nav-icon">▥</span>Schémas
+          </button>
+
+          <div class="nav-group-label">Chapitres</div>
+          <div id="chapterNav" class="chapter-nav"></div>
+
+          <div class="nav-group-label">Bilan</div>
+          <button class="nav-item" data-view="exam">
+            <span class="nav-icon">⏻</span>Examen blanc
+          </button>
+        </nav>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar">
+          <div class="global-search">
+            <label class="sr-only" for="globalSearchInput">Rechercher une notion</label>
+            <input id="globalSearchInput" type="search" placeholder="Rechercher un muscle, os, ligament…" autocomplete="off" />
+            <div id="globalSearchResults" class="global-search-results hidden"></div>
+          </div>
+          <div class="topbar-right">
+            <span class="badge level-badge">★ Niv. <strong id="levelValue">1</strong> · <strong id="xpValue">0</strong> XP</span>
+            <span class="badge streak-badge">🔥 <strong id="streakValue">0</strong> jours</span>
+            <div class="profile-menu">
+              <button id="profileMenuBtn" class="badge profile-badge" type="button">
+                👤 <span id="activeProfileName">Moi</span>
+              </button>
+              <div id="profileDropdown" class="profile-dropdown hidden">
+                <label class="sr-only" for="profileSelect">Profil</label>
+                <select id="profileSelect"></select>
+                <form id="newProfileForm" class="profile-form">
+                  <input id="profileName" type="text" placeholder="Nouveau profil" maxlength="20" />
+                  <button type="submit">Créer</button>
+                </form>
+                <div class="profile-data-actions">
+                  <button id="exportDataBtn" type="button" class="btn-secondary">⭳ Exporter mes données</button>
+                  <label class="btn-secondary import-label" for="importDataInput">⭱ Importer</label>
+                  <input id="importDataInput" type="file" accept="application/json" class="sr-only" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main id="viewContainer" class="view-container"></main>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
