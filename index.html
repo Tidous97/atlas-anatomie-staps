@@ -76,6 +76,10 @@
                   <label class="btn-secondary import-label" for="importDataInput">⭱ Importer</label>
                   <input id="importDataInput" type="file" accept="application/json" class="sr-only" />
                 </div>
+                <div class="cloud-sync" id="cloudSyncSection">
+                  <div class="cloud-sync-kicker">Synchronisation cloud</div>
+                  <div id="cloudSyncBody">Chargement…</div>
+                </div>
               </div>
             </div>
           </div>
@@ -85,6 +89,9 @@
       </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

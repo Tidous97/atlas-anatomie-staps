@@ -369,6 +369,48 @@ a:focus-visible,
   cursor: pointer;
 }
 
+.cloud-sync {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.cloud-sync-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cloud-sync-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.cloud-sync-status {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.cloud-sync-status.synced {
+  color: var(--accent);
+}
+
+.cloud-sync-status.error {
+  color: var(--danger);
+}
+
+.cloud-sync #cloudSignInBtn,
+.cloud-sync #cloudSignOutBtn {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
 .view-container {
   flex: 1;
   padding: 0 32px 40px;

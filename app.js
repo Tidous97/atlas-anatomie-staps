@@ -1420,6 +1420,114 @@ function attachLabelingDiagrams() {
 }
 attachLabelingDiagrams();
 
+/* ---------- Cloud sync (Firebase) ---------- */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCABZX7AYfWHBQUfV92h6raf5NRmx1Vm84",
+  authDomain: "atlas-anatomie.firebaseapp.com",
+  projectId: "atlas-anatomie",
+  storageBucket: "atlas-anatomie.firebasestorage.app",
+  messagingSenderId: "521814792062",
+  appId: "1:521814792062:web:2d4f6328695ab0fecc452f"
+};
+firebase.initializeApp(firebaseConfig);
+const cloudAuth = firebase.auth();
+const cloudDb = firebase.firestore();
+
+let cloudUser = null;
+let cloudSyncTimer = null;
+let cloudSyncStatus = "idle"; // idle | syncing | synced | error
+
+function scheduleCloudPush() {
+  if (!cloudUser) return;
+  if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(pushToCloud, 1500);
+}
+
+async function pushToCloud() {
+  if (!cloudUser) return;
+  cloudSyncStatus = "syncing";
+  renderCloudSyncUI();
+  try {
+    await cloudDb.collection("users").doc(cloudUser.uid).set({
+      state: JSON.stringify(state),
+      lastModified: state.lastModified
+    });
+    cloudSyncStatus = "synced";
+  } catch (err) {
+    console.error("Cloud push failed", err);
+    cloudSyncStatus = "error";
+  }
+  renderCloudSyncUI();
+}
+
+async function pullFromCloudOnSignIn() {
+  cloudSyncStatus = "syncing";
+  renderCloudSyncUI();
+  try {
+    const doc = await cloudDb.collection("users").doc(cloudUser.uid).get();
+    if (doc.exists) {
+      const cloudData = doc.data();
+      const cloudState = JSON.parse(cloudData.state);
+      const cloudTime = cloudData.lastModified || 0;
+      const localTime = state.lastModified || 0;
+      if (cloudTime > localTime) {
+        normalizeState(cloudState);
+        state = cloudState;
+        resetTransientSessions();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+      } else if (localTime > cloudTime) {
+        await pushToCloud();
+      }
+    } else {
+      await pushToCloud();
+    }
+    cloudSyncStatus = "synced";
+  } catch (err) {
+    console.error("Cloud pull failed", err);
+    cloudSyncStatus = "error";
+  }
+  renderCloudSyncUI();
+}
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  cloudAuth.signInWithPopup(provider).catch((err) => {
+    console.error(err);
+    window.alert("Connexion impossible : " + err.message);
+  });
+}
+
+function signOutCloud() {
+  cloudAuth.signOut();
+}
+
+cloudAuth.onAuthStateChanged((user) => {
+  cloudUser = user;
+  if (user) pullFromCloudOnSignIn();
+  else cloudSyncStatus = "idle";
+  renderCloudSyncUI();
+});
+
+function renderCloudSyncUI() {
+  const body = document.getElementById("cloudSyncBody");
+  if (!body) return;
+  if (!cloudUser) {
+    body.innerHTML = `<p class="cloud-sync-desc">Connecte-toi pour synchroniser automatiquement ta progression entre tes appareils.</p>
+      <button class="btn-secondary" id="cloudSignInBtn" type="button">🔐 Se connecter avec Google</button>`;
+    const btn = document.getElementById("cloudSignInBtn");
+    if (btn) btn.addEventListener("click", signInWithGoogle);
+    return;
+  }
+  const statusText = { syncing: "Synchronisation…", synced: "✓ Synchronisé", error: "⚠ Erreur de synchro, réessaie plus tard" }[cloudSyncStatus] || "";
+  body.innerHTML = `<p class="cloud-sync-desc">Connecté : ${escapeHtml(cloudUser.displayName || cloudUser.email || "compte Google")}</p>
+    <p class="cloud-sync-status ${cloudSyncStatus}">${statusText}</p>
+    <button class="btn-secondary" id="cloudSignOutBtn" type="button">Se déconnecter</button>`;
+  const btn = document.getElementById("cloudSignOutBtn");
+  if (btn) btn.addEventListener("click", signOutCloud);
+}
+
 let state = loadState();
 let flashcardState = { currentCardId: null, showAnswer: false, showNote: false, mode: "normal", forceAll: false };
 let quizSession = null;
@@ -1470,6 +1578,7 @@ function loadState() {
 }
 
 function normalizeState(rawState) {
+  if (typeof rawState.lastModified !== "number") rawState.lastModified = 0;
   (rawState.profiles || []).forEach((profile) => {
     if (!Array.isArray(profile.badges)) profile.badges = [];
     if (typeof profile.examBest !== "number") profile.examBest = 0;
@@ -1508,12 +1617,15 @@ function createDefaultState() {
     ],
     activeProfileId: "profile-1",
     activeChapterId: "cm1",
-    currentView: "dashboard"
+    currentView: "dashboard",
+    lastModified: Date.now()
   };
 }
 
 function saveState() {
+  state.lastModified = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  scheduleCloudPush();
 }
 
 function getActiveProfile() {
@@ -2947,5 +3059,6 @@ function renderAll() {
 
 bindGlobalEvents();
 renderAll();
-saveState();
+renderCloudSyncUI();
+localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 console.log("Atlas — Anatomie STAPS prêt.");
